@@ -1,0 +1,48 @@
+.paypal-btn {
+  background-color: #0070ba; /* PayPal-Blau */
+  color: white;
+}
+
+.paypal-btn:hover {
+  background-color: #005c9c;
+}
+
+.stripe-btn {
+  background-color: #28a745; /* Stripe-Grün */
+  color: white;
+}
+
+.stripe-btn:hover {
+  background-color: #218838;
+}
+
+    .modal.show {
+      display: block;
+      background-color: rgba(0, 0, 0, 0.5);
+    }
+    .modal-content {
+      max-width: 90%;
+      background: white;
+      margin: 10% auto;
+      padding: 1rem;
+      border-radius: 8px;
+      text-align: center;
+    }
+    .modal-btn {
+      margin-top: 1rem;
+      padding: 0.5rem 1rem;
+    }
+
+    .testimonial-box {
+      transition: all 0.3s ease-in-out;
+    }
+    .testimonial-box:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    }
+
+    .carousel-control-prev-icon,
+    .carousel-control-next-icon {
+      background-color: transparent;
+      filter: invert(48%) sepia(93%) saturate(748%) hue-rotate(1deg) brightness(101%) contrast(101%);
+    }
