@@ -1,20 +1,4 @@
-.paypal-btn {
-  background-color: #0070ba; /* PayPal-Blau */
-  color: white;
-}
 
-.paypal-btn:hover {
-  background-color: #005c9c;
-}
-
-.stripe-btn {
-  background-color: #28a745; /* Stripe-Grün */
-  color: white;
-}
-
-.stripe-btn:hover {
-  background-color: #218838;
-}
 
     .modal.show {
       display: block;
