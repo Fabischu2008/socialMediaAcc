@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kontakt</title>
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+
+<!-- Hero mit Hintergrundbild -->
+<section class="position-relative d-flex align-items-center" style="background:url('1.svg') center/cover no-repeat; min-height:85vh;">
+  <!-- Dunkles Overlay -->
+  <div class="position-absolute top-0 start-0 w-100 h-100 bg-dark opacity-50"></div>
+
+  <!-- Formular -->
+  <div class="container position-relative">
+    <div class="row justify-content-center">
+      <div class="col-md-6">
+        <form name="kontakt" method="POST" data-netlify="true" class="bg-white p-4 rounded-3 shadow">
+          <input type="hidden" name="form-name" value="kontakt">
+
+          <h3 class="mb-4 text-center">Kontakt aufnehmen</h3>
+
+          <div class="mb-3">
+            <label for="name" class="form-label">Name*</label>
+            <input type="text" class="form-control" id="name" name="name" required>
+          </div>
+
+          <div class="mb-3">
+            <label for="email" class="form-label">E-Mail*</label>
+            <input type="email" class="form-control" id="email" name="email" required>
+          </div>
+
+          <div class="mb-3">
+            <label for="telefon" class="form-label">Telefonnummer</label>
+            <input type="tel" class="form-control" id="telefon" name="telefon" placeholder="+49 ...">
+          </div>
+
+          <div class="mb-3">
+            <label for="whatsapp" class="form-label">WhatsApp Kontakt?</label>
+            <select id="whatsapp" class="form-select" name="whatsapp">
+              <option value="Ja">Ja</option>
+              <option value="Nein">Nein</option>
+            </select>
+          </div>
+
+          <div class="d-grid">
+            <button type="submit" class="btn btn-warning fw-bold">Absenden</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Bootstrap JS (optional) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
