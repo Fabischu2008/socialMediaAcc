@@ -52,7 +52,7 @@
 </header>
 
 <section class="position-relative d-flex align-items-center"
-         style="background:url('1.svg') center/cover no-repeat; min-height:90vh;">
+         style="background:url('1.svg') center/cover no-repeat; min-height:90vh; padding-top: 20px; padding-bottom: 80px;">
   <!-- Dunkles Overlay -->
   <div class="position-absolute top-0 start-0 w-100 h-100"
        style="background: rgba(0,0,0,0.2);"></div>
@@ -61,6 +61,16 @@
   <div class="container position-relative">
     <div class="row justify-content-center">
       <div class="col-md-6">
+
+        <!-- Header-Text über dem Formular -->
+        <div class="text-center text-white mb-5 mt-5">
+          <h2 class="fw-bold mb-3">Jetzt Beratung sichern</h2>
+          <p class="lead mb-0">
+            Tragen Sie sich kostenlos ein und erhalten Sie eine persönliche, unverbindliche Beratung – schnell und direkt.
+          </p>
+        </div>
+
+        <!-- Formular -->
         <form name="kontakt" method="POST" data-netlify="true"
               class="bg-white p-4 rounded-3 shadow">
           <input type="hidden" name="form-name" value="kontakt">
@@ -94,10 +104,14 @@
             <button type="submit" class="btn btn-warning fw-bold" style="background-color: #fce51f; color: #000; border: none;">Absenden</button>
           </div>
         </form>
+
       </div>
     </div>
   </div>
 </section>
+
+
+
 
 <!-- Footer -->
 <footer class="text-white position-relative pt-5 pb-4"
