@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Weg der Erleuchtung - Astro Rechner</title>
+  <meta name="description" content="Folge @weg.der.erleuchtung für Inspiration, Achtsamkeit & kosmische Klarheit. Dein spiritueller Kompass auf Instagram,Tiktok,Facebook.">
+
+  <link rel="icon" type="image/png" href="logo1.svg">
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
+  <script src="https://cdn.jsdelivr.net/npm/astronomy-engine@2.1.19/astronomy.browser.min.js"></script>
+
+  <style>
+    /* --- CUSTOM STYLES --- */
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    /* Formular Elemente Styling im Rechner */
+    label { font-weight: 600; font-size: 0.9rem; color: #444; }
+
+    .form-control-astro,
+    .form-select-astro {
+      width: 100%; padding: 12px; margin-top: 6px;
+      border: 1px solid #ced4da; border-radius: 8px;
+      font-size: 1rem; box-sizing: border-box;
+      background: #fff;
+    }
+
+    .form-control-astro:focus,
+    .form-select-astro:focus {
+      border-color: #3498db;
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+    }
+
+    /* Koordinaten Felder (Readonly) */
+    input[readonly] { background: #f8f9fa; color: #888; cursor: default; }
+
+    /* Berechnen Button */
+    button.btn-calc {
+      width: 100%; margin-top: 25px; padding: 14px;
+      background: linear-gradient(135deg, #3498db, #2980b9);
+      color: white; border: none; border-radius: 8px;
+      font-size: 1.1em; font-weight: 700; cursor: pointer;
+      transition: transform 0.1s, box-shadow 0.2s;
+    }
+    button.btn-calc:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+      color: white;
+    }
+
+    /* CTA Button (Zur Formular Seite) */
+    .btn-cta {
+      background-color: #fce51f;
+      color: #000;
+      border: none;
+      padding: 12px 25px;
+      font-weight: bold;
+      text-decoration: none;
+      border-radius: 8px;
+      display: inline-block;
+      transition: transform 0.2s;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+    .btn-cta:hover {
+      background-color: #e6d010;
+      transform: translateY(-2px);
+      color: #000;
+    }
+
+    /* Status Box */
+    #status { text-align: center; font-size: 0.85em; margin-bottom: 20px; padding: 8px; border-radius: 6px; }
+    .status-ok { background: #e8f5e9; color: #2e7d32; }
+    .status-err { background: #ffebee; color: #c62828; }
+    .status-wait { background: #fff3e0; color: #ef6c00; }
+
+    /* Ergebnistabelle */
+    #output { margin-top: 30px; border-top: 2px solid #f5f5f5; padding-top: 20px; }
+    table { width: 100%; border-collapse: separate; border-spacing: 0 8px; }
+    tr { background: #fff; }
+    td { padding: 12px 8px; border-bottom: 1px solid #f5f5f5; vertical-align: middle; }
+
+    /* Deutungs-Box */
+    .interpretation-box {
+      background: #f8f9fa;
+      border-left: 4px solid #3498db;
+      padding: 15px;
+      margin-top: 30px;
+      border-radius: 4px;
+    }
+    .interpretation-title { font-weight: bold; color: #2c3e50; margin-bottom: 5px; display: block; }
+    .interpretation-text { font-size: 0.95rem; color: #555; line-height: 1.5; }
+
+    /* Badges */
+    .badge-elem { padding: 5px 12px; border-radius: 20px; font-size: 0.8em; font-weight: 700; display: inline-block; min-width: 90px; text-align: center; text-transform: uppercase; letter-spacing: 0.5px; }
+    .fire { background:#ffebee; color:#d32f2f; }
+    .earth { background:#e8f5e9; color:#388e3c; }
+    .air { background:#e3f2fd; color:#1976d2; }
+    .water { background:#e0f7fa; color:#0097a7; }
+
+    .error-msg { color: #c62828; background: #ffebee; padding: 15px; border-radius: 8px; margin-top: 15px; font-weight: bold; text-align: center;}
+  </style>
+</head>
+<body>
+
+<header class="py-3 border-bottom bg-white shadow-sm" style="position:relative; z-index: 10;">
+  <div class="container">
+    <nav class="navbar navbar-expand-lg navbar-light">
+      <a class="navbar-brand fw-bold d-flex align-items-center" href="index.html">
+        <img src="logo.png" onerror="this.style.display='none'" alt="Logo" height="70" class="me-2" />
+        <small class="text-muted" style="font-size: 1.2rem;">Weg der Erleuchtung</small>
+      </a>
+
+      <div class="collapse navbar-collapse justify-content-end" id="mainNavbar">
+        <ul class="navbar-nav">
+          <li class="nav-item">
+            <a class="nav-link" href="angebot.html"></a>
+          </li>
+          <li class="nav-item"><a class="nav-link" href="#kontakt"></a></li>
+        </ul>
+      </div>
+    </nav>
+  </div>
+</header>
+
+<section class="position-relative d-flex align-items-center flex-grow-1"
+         style="background:url('1.jpg') center/cover no-repeat; min-height:90vh; padding-top: 40px; padding-bottom: 80px;">
+
+  <div class="position-absolute top-0 start-0 w-100 h-100"
+       style="background: rgba(0,0,0,0.4);"></div>
+
+  <div class="container position-relative" style="z-index: 2;">
+    <div class="row justify-content-center">
+      <div class="col-md-7 col-lg-6">
+
+        <div class="text-center text-white mb-4">
+          <h2 class="fw-bold mb-2">Dein Horoskop</h2>
+          <p class="lead mb-0 opacity-75">
+            Berechne dein Chart exakt für jeden Ort der Welt.
+          </p>
+        </div>
+
+        <div class="bg-white p-4 p-md-5 rounded-3 shadow">
+
+          <div id="status" class="status-wait">Lade System...</div>
+
+          <form id="astroForm">
+            <div class="mb-3">
+              <label for="citySelect">Geburtsort wählen:</label>
+              <select id="citySelect" class="form-select-astro" onchange="updateCoords()">
+              </select>
+            </div>
+
+            <div class="row g-2 mb-3">
+              <div class="col-6">
+                <label style="font-size:0.8em">Breitengrad</label>
+                <input type="text" id="lat" class="form-control-astro" readonly>
+              </div>
+              <div class="col-6">
+                <label style="font-size:0.8em">Längengrad</label>
+                <input type="text" id="lon" class="form-control-astro" readonly>
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label for="date">Geburtsdatum:</label>
+              <input type="date" id="date" class="form-control-astro" value="1998-08-20">
+            </div>
+
+            <div class="mb-3">
+              <label for="time">Geburtszeit:</label>
+              <input type="time" id="time" class="form-control-astro" value="14:51">
+            </div>
+
+            <button type="button" class="btn-calc" onclick="calculate()">Jetzt Berechnen</button>
+          </form>
+
+          <div id="output"></div>
+
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer id="kontakt" class="text-white position-relative pt-5 pb-4"
+        style="background: #2c3e50 url('1.svg') center center / cover no-repeat;">
+
+  <div class="position-absolute top-0 start-0 w-100 h-100"
+       style="background: rgba(0, 0, 0, 0.5); z-index: 1;"></div>
+
+  <div class="container position-relative" style="z-index: 2;">
+    <div class="row g-4">
+      <div class="col-md-4">
+        <h5 class="mb-3">Kontakt</h5>
+        <p class="mb-1">📧 <strong>E-Mail:</strong><br>
+          <a href="mailto:info.wegdererleuchtung@gmail.com" class="text-white text-decoration-none">info.wegdererleuchtung@gmail.com</a>
+        </p>
+        <p class="mb-0">💬 <strong>WhatsApp:</strong><br>
+          <a href="https://wa.me/4915259527957" class="text-white text-decoration-none">+49 1525 9527957</a>
+        </p>
+      </div>
+
+      <div class="col-md-4">
+        <h5 class="mb-3">Schnellzugriff</h5>
+        <ul class="list-unstyled">
+          <li><a href="index.html" class="text-white text-decoration-none">Start</a></li>
+        </ul>
+      </div>
+
+      <div class="col-md-4">
+        <h5 class="mb-3">Weg der Erleuchtung</h5>
+        <p class="mb-2">
+          Spirituelle Begleitung mit Herz – für Menschen, die mehr Tiefe, Klarheit und Bewusstsein in ihr Leben bringen möchten.
+        </p>
+        <ul class="list-inline mt-3">
+          <li class="list-inline-item">
+            <a href="https://instagram.com/weg.der.erleuchtung" class="text-white fs-5 me-2"><i class="bi bi-instagram"></i></a>
+            <a href="https://www.tiktok.com/@weg.der.erleuchtung?lang=de-DE" class="text-white fs-5 me-2"><i class="bi bi-tiktok"></i></a>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <hr class="border-secondary mt-5">
+
+    <div class="row">
+      <div class="col-md-6">
+        <ul class="list-inline mb-0">
+          <li class="list-inline-item"><a href="impressum.html" class="text-white text-decoration-none">Impressum</a></li>
+          <li class="list-inline-item mx-2">|</li>
+          <li class="list-inline-item"><a href="datenschutz.html" class="text-white text-decoration-none">Datenschutz</a></li>
+          <li class="list-inline-item mx-2">|</li>
+          <li class="list-inline-item"><a href="agb.html" class="text-white text-decoration-none">AGB</a></li>
+        </ul>
+      </div>
+      <div class="col-md-6 text-md-end mt-3 mt-md-0">
+        <small>&copy; 2025 Weg der Erleuchtung – mit Liebe & Klarheit gestaltet.</small>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+// --- DATEN ---
+const DE_CITIES = [
+  {name: "Korbach", lat: 51.2736, lon: 8.8717},
+  {name: "Oldenburg", lat: 53.1435, lon: 8.2146},
+  {name: "Kaiserslautern", lat: 49.4447, lon: 7.7680},
+  {name: "Berlin", lat: 52.5200, lon: 13.4050},
+  {name: "München", lat: 48.1351, lon: 11.5820},
+  {name: "Hamburg", lat: 53.5511, lon: 9.9937},
+  {name: "Köln", lat: 50.9375, lon: 6.9603},
+  {name: "Frankfurt", lat: 50.1109, lon: 8.6821},
+  {name: "Stuttgart", lat: 48.7758, lon: 9.1829},
+  {name: "Leipzig", lat: 51.3397, lon: 12.3731},
+  {name: "Dresden", lat: 51.0504, lon: 13.7373},
+  {name: "Hannover", lat: 52.3759, lon: 9.7320},
+  {name: "Nürnberg", lat: 49.4521, lon: 11.0767},
+  {name: "Bremen", lat: 53.0793, lon: 8.8017},
+  {name: "Düsseldorf", lat: 51.2277, lon: 6.7735},
+  {name: "Essen", lat: 51.4556, lon: 7.0116},
+  {name: "Zürich (CH)", lat: 47.3769, lon: 8.5417},
+  {name: "Wien (AT)", lat: 48.2082, lon: 16.3738}
+];
+
+const ZODIAC = [
+  {name: "Widder", icon: "♈", elm: "fire"}, {name: "Stier", icon: "♉", elm: "earth"},
+  {name: "Zwillinge", icon: "♊", elm: "air"}, {name: "Krebs", icon: "♋", elm: "water"},
+  {name: "Löwe", icon: "♌", elm: "fire"}, {name: "Jungfrau", icon: "♍", elm: "earth"},
+  {name: "Waage", icon: "♎", elm: "air"}, {name: "Skorpion", icon: "♏", elm: "water"},
+  {name: "Schütze", icon: "♐", elm: "fire"}, {name: "Steinbock", icon: "♑", elm: "earth"},
+  {name: "Wassermann", icon: "♒", elm: "air"}, {name: "Fische", icon: "♓", elm: "water"}
+];
+
+// Texte für die Kurzauswertung
+const SIGN_TEXTS = {
+  "Widder": "Du bist ein energiegeladener Pionier. Deine Willenskraft und dein Mut treiben dich an, neue Wege zu gehen.",
+  "Stier": "Du suchst Sicherheit und Beständigkeit. Du genießt die schönen Seiten des Lebens und bist ein Fels in der Brandung.",
+  "Zwillinge": "Du bist kommunikativ und vielseitig interessiert. Dein Geist ist immer wach, und du liebst den Austausch.",
+  "Krebs": "Du bist gefühlsbetont und fürsorglich. Deine Intuition ist stark, und Familie/Heim bedeuten dir alles.",
+  "Löwe": "Du strahlst Wärme und Selbstbewusstsein aus. Du führst gerne und inspirierst andere mit deiner Kreativität.",
+  "Jungfrau": "Du hast einen Blick fürs Detail und liebst Ordnung. Deine analytische Art hilft dir, Probleme effizient zu lösen.",
+  "Waage": "Du strebst nach Harmonie und Gerechtigkeit. Beziehungen sind dir wichtig, und du hast Sinn für Ästhetik.",
+  "Skorpion": "Du gehst den Dingen auf den Grund. Deine Gefühle sind tief und intensiv, du hast eine starke Ausstrahlung.",
+  "Schütze": "Du bist ein Optimist auf der Suche nach dem Sinn. Freiheit und Reisen erweitern deinen Horizont.",
+  "Steinbock": "Du bist ehrgeizig und verantwortungsbewusst. Mit Geduld und Disziplin erreichst du deine hohen Ziele.",
+  "Wassermann": "Du bist ein Individualist und Visionär. Freiheit und Unabhängigkeit sind dir wichtiger als Konventionen.",
+  "Fische": "Du bist sensibel und fantasievoll. Dein Mitgefühl ist groß, und du hast eine Verbindung zum Spirituellen."
+};
+
+const PLANETS = {
+  "Sun": "Sonne", "Moon": "Mond", "Mercury": "Merkur", "Venus": "Venus", "Mars": "Mars",
+  "Jupiter": "Jupiter", "Saturn": "Saturn", "Uranus": "Uranus", "Neptune": "Neptun", "Pluto": "Pluto",
+  "Ascendant": "Aszendent"
+};
+
+// --- INIT ---
+window.onload = function() {
+  const statusDiv = document.getElementById("status");
+  if (typeof Astronomy !== 'undefined') {
+    statusDiv.className = "status-ok";
+    statusDiv.innerText = "System bereit";
+    fillCities();
+  } else {
+    statusDiv.className = "status-err";
+    statusDiv.innerText = "Fehler: Bibliothek nicht geladen.";
+  }
+};
+
+function fillCities() {
+  const sel = document.getElementById("citySelect");
+  DE_CITIES.sort((a,b) => a.name.localeCompare(b.name));
+  DE_CITIES.forEach(c => {
+    let opt = document.createElement("option");
+    opt.value = c.lat + "," + c.lon;
+    opt.text = c.name;
+    sel.add(opt);
+  });
+  // Default: Kaiserslautern
+  sel.value = "49.4447,7.768";
+  updateCoords();
+}
+
+function updateCoords() {
+  const val = document.getElementById("citySelect").value;
+  if(val) {
+    const parts = val.split(",");
+    document.getElementById("lat").value = parts[0];
+    document.getElementById("lon").value = parts[1];
+  }
+}
+
+function mod(x, y) { return ((x % y) + y) % y; }
+
+function getZod(deg) {
+  const i = Math.floor(deg / 30);
+  const z = ZODIAC[mod(i, 12)];
+  const d = Math.floor(deg % 30);
+  const m = Math.floor((deg % 1) * 60);
+  return { sign: z, txt: `${d}° ${m}'` };
+}
+
+// Manuelle Berechnung der Erdneigung (Fix für den Fehler)
+function getObliquity(dateObj) {
+  const J2000 = new Date("2000-01-01T12:00:00Z");
+  const days = (dateObj - J2000) / 86400000;
+  const T = days / 36525;
+  return 23.43929 - (0.0130041 * T);
+}
+
+// --- BERECHNUNG ---
+function calculate() {
+  const out = document.getElementById("output");
+  out.innerHTML = "<p style='text-align:center; color:#888'>Berechne Positionen...</p>";
+
+  try {
+    if (typeof Astronomy === 'undefined') throw new Error("Bibliothek fehlt.");
+
+    const dStr = document.getElementById("date").value;
+    const tStr = document.getElementById("time").value;
+    const lat = parseFloat(document.getElementById("lat").value);
+    const lon = parseFloat(document.getElementById("lon").value);
+
+    const date = new Date(dStr + "T" + tStr);
+
+    let list = [];
+    const bodies = ["Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto"];
+
+    // 1. Planeten
+    bodies.forEach(b => {
+      const vec = Astronomy.GeoVector(Astronomy.Body[b], date, true);
+      const elon = Astronomy.Ecliptic(vec).elon;
+      list.push({ key: b, val: elon });
+    });
+
+    // 2. Aszendent
+    const gmst = Astronomy.SiderealTime(date);
+    const ramc = gmst * 15 + lon;
+    const obl = getObliquity(date);
+
+    const eps = obl * Math.PI / 180;
+    const latRad = lat * Math.PI / 180;
+    const ramcRad = ramc * Math.PI / 180;
+
+    const acRad = Math.atan2(Math.cos(ramcRad), -Math.sin(ramcRad) * Math.cos(eps) - Math.tan(latRad) * Math.sin(eps));
+    list.push({ key: "Ascendant", val: mod(acRad * 180 / Math.PI, 360) });
+
+    // 3. Ausgabe
+    const order = ["Sun", "Moon", "Ascendant", "Mercury", "Venus", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto"];
+    list.sort((a,b) => order.indexOf(a.key) - order.indexOf(b.key));
+
+    let html = "<table>";
+    let sunSign = "";
+    let acSign = "";
+
+    list.forEach(item => {
+      const z = getZod(item.val);
+      const name = PLANETS[item.key];
+      const style = ["Sun","Moon","Ascendant"].includes(item.key) ? "font-weight:bold; color:#2c3e50;" : "color:#666;";
+
+      // Speichere Sonne und AC für Auswertung
+      if(item.key === "Sun") sunSign = z.sign.name;
+      if(item.key === "Ascendant") acSign = z.sign.name;
+
+      html += `<tr>
+        <td style="${style}">${name}</td>
+        <td><span class="badge-elem ${z.sign.elm}">${z.sign.icon} ${z.sign.name}</span></td>
+        <td style="text-align:right; font-family:monospace; color:#888;">${z.txt}</td>
+      </tr>`;
+    });
+    html += "</table>";
+
+    // --- Kurzauswertung hinzufügen ---
+    if(sunSign && acSign) {
+        html += `<div class="interpretation-box">
+            <span class="interpretation-title">Dein Kern (Sonne in ${sunSign}):</span>
+            <p class="interpretation-text">${SIGN_TEXTS[sunSign]}</p>
+
+            <span class="interpretation-title mt-3">Deine Wirkung (Aszendent in ${acSign}):</span>
+            <p class="interpretation-text mb-0">${SIGN_TEXTS[acSign]}</p>
+        </div>`;
+    }
+
+    // --- Call to Action Button ---
+    html += `<div class="text-center mt-4">
+        <p class="mb-2 text-muted" style="font-size:0.9em">Das war nur der Anfang. Erfahre, was die Sterne wirklich für dich bereithalten.</p>
+        <a href="form.html" class="btn-cta">
+           Persönliche Deutung anfragen <i class="bi bi-arrow-right ms-1"></i>
+        </a>
+    </div>`;
+
+    // Kleiner Fade-In Effekt
+    out.style.opacity = 0;
+    out.innerHTML = html;
+    setTimeout(() => { out.style.transition = 'opacity 0.5s'; out.style.opacity = 1; }, 50);
+
+  } catch (err) {
+    out.innerHTML = `<div class="error-msg">Hoppla: ${err.message}</div>`;
+    console.error(err);
+  }
+}
+</script>
+
+</body>
+</html>
