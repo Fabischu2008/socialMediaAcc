@@ -23,26 +23,65 @@
       min-height: 100vh;
     }
 
-    /* Formular Elemente Styling im Rechner */
     label { font-weight: 600; font-size: 0.9rem; color: #444; }
 
-    .form-control-astro,
-    .form-select-astro {
+    .form-control-astro {
       width: 100%; padding: 12px; margin-top: 6px;
       border: 1px solid #ced4da; border-radius: 8px;
       font-size: 1rem; box-sizing: border-box;
       background: #fff;
     }
 
-    .form-control-astro:focus,
-    .form-select-astro:focus {
+    .form-control-astro:focus {
       border-color: #3498db;
       outline: none;
       box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
     }
 
-    /* Koordinaten Felder (Readonly) */
     input[readonly] { background: #f8f9fa; color: #888; cursor: default; }
+
+    /* --- Styling für die Suchergebnisse --- */
+    .search-wrapper { position: relative; }
+
+    #cityResults {
+      position: absolute;
+      top: 100%; left: 0; right: 0;
+      background: white;
+      border: 1px solid #ced4da;
+      border-top: none;
+      border-radius: 0 0 8px 8px;
+      max-height: 250px;
+      overflow-y: auto;
+      z-index: 1000;
+      display: none;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+
+    .city-item {
+      padding: 10px 15px;
+      cursor: pointer;
+      border-bottom: 1px solid #f0f0f0;
+      font-size: 0.95rem;
+    }
+    .city-item:last-child { border-bottom: none; }
+    .city-item:hover {
+      background-color: #f0f7ff;
+      color: #3498db;
+    }
+    .city-item small { display: block; color: #888; font-size: 0.8em; margin-top: 2px; }
+
+    /* Lade-Spinner */
+    .loader {
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #3498db;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 30px auto;
+      display: none;
+    }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
     /* Berechnen Button */
     button.btn-calc {
@@ -58,7 +97,7 @@
       color: white;
     }
 
-    /* CTA Button (Zur Formular Seite) */
+    /* CTA Button */
     .btn-cta {
       background-color: #fce51f;
       color: #000;
@@ -83,13 +122,12 @@
     .status-err { background: #ffebee; color: #c62828; }
     .status-wait { background: #fff3e0; color: #ef6c00; }
 
-    /* Ergebnistabelle */
-    #output { margin-top: 30px; border-top: 2px solid #f5f5f5; padding-top: 20px; }
+    /* Output & Interpretation */
+    #output { margin-top: 30px; border-top: 2px solid #f5f5f5; padding-top: 20px; display:none; }
     table { width: 100%; border-collapse: separate; border-spacing: 0 8px; }
     tr { background: #fff; }
     td { padding: 12px 8px; border-bottom: 1px solid #f5f5f5; vertical-align: middle; }
 
-    /* Deutungs-Box */
     .interpretation-box {
       background: #f8f9fa;
       border-left: 4px solid #3498db;
@@ -100,7 +138,6 @@
     .interpretation-title { font-weight: bold; color: #2c3e50; margin-bottom: 5px; display: block; }
     .interpretation-text { font-size: 0.95rem; color: #555; line-height: 1.5; }
 
-    /* Badges */
     .badge-elem { padding: 5px 12px; border-radius: 20px; font-size: 0.8em; font-weight: 700; display: inline-block; min-width: 90px; text-align: center; text-transform: uppercase; letter-spacing: 0.5px; }
     .fire { background:#ffebee; color:#d32f2f; }
     .earth { background:#e8f5e9; color:#388e3c; }
@@ -117,7 +154,7 @@
     <nav class="navbar navbar-expand-lg navbar-light">
       <a class="navbar-brand fw-bold d-flex align-items-center" href="index.html">
         <img src="logo.png" onerror="this.style.display='none'" alt="Logo" height="70" class="me-2" />
-        <small class="text-muted" style="font-size: 1.2rem;">Weg der Erleuchtung</small>
+        <small class="text-muted">Weg der Erleuchtung</small>
       </a>
 
       <div class="collapse navbar-collapse justify-content-end" id="mainNavbar">
@@ -147,6 +184,9 @@
           <p class="lead mb-0 opacity-75">
             Berechne dein Chart exakt für jeden Ort der Welt.
           </p>
+          <p class="small text-white-50 mt-2">
+            Suche einfach nach deinem Geburtsort (z.B. "Frankenthal").
+          </p>
         </div>
 
         <div class="bg-white p-4 p-md-5 rounded-3 shadow">
@@ -154,35 +194,39 @@
           <div id="status" class="status-wait">Lade System...</div>
 
           <form id="astroForm">
-            <div class="mb-3">
-              <label for="citySelect">Geburtsort wählen:</label>
-              <select id="citySelect" class="form-select-astro" onchange="updateCoords()">
-              </select>
+
+            <div class="mb-3 search-wrapper">
+              <label for="citySearch">Geburtsort suchen:</label>
+              <div id="searchSpinner" class="spinner-border text-primary spinner-border-sm position-absolute" style="right: 15px; top: 42px; display: none; z-index: 5;" role="status"></div>
+              <input type="text" id="citySearch" class="form-control-astro" placeholder="Tippe deinen Ort (z.B. Frankenthal)..." autocomplete="off">
+              <div id="cityResults"></div>
             </div>
 
             <div class="row g-2 mb-3">
               <div class="col-6">
                 <label style="font-size:0.8em">Breitengrad</label>
-                <input type="text" id="lat" class="form-control-astro" readonly>
+                <input type="text" id="lat" class="form-control-astro" readonly placeholder="-">
               </div>
               <div class="col-6">
                 <label style="font-size:0.8em">Längengrad</label>
-                <input type="text" id="lon" class="form-control-astro" readonly>
+                <input type="text" id="lon" class="form-control-astro" readonly placeholder="-">
               </div>
             </div>
 
             <div class="mb-3">
               <label for="date">Geburtsdatum:</label>
-              <input type="date" id="date" class="form-control-astro" value="1998-08-20">
+              <input type="date" id="date" class="form-control-astro">
             </div>
 
             <div class="mb-3">
               <label for="time">Geburtszeit:</label>
-              <input type="time" id="time" class="form-control-astro" value="14:51">
+              <input type="time" id="time" class="form-control-astro">
             </div>
 
             <button type="button" class="btn-calc" onclick="calculate()">Jetzt Berechnen</button>
           </form>
+
+          <div id="loader" class="loader"></div>
 
           <div id="output"></div>
 
@@ -254,27 +298,7 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
-// --- DATEN ---
-const DE_CITIES = [
-  {name: "Korbach", lat: 51.2736, lon: 8.8717},
-  {name: "Oldenburg", lat: 53.1435, lon: 8.2146},
-  {name: "Kaiserslautern", lat: 49.4447, lon: 7.7680},
-  {name: "Berlin", lat: 52.5200, lon: 13.4050},
-  {name: "München", lat: 48.1351, lon: 11.5820},
-  {name: "Hamburg", lat: 53.5511, lon: 9.9937},
-  {name: "Köln", lat: 50.9375, lon: 6.9603},
-  {name: "Frankfurt", lat: 50.1109, lon: 8.6821},
-  {name: "Stuttgart", lat: 48.7758, lon: 9.1829},
-  {name: "Leipzig", lat: 51.3397, lon: 12.3731},
-  {name: "Dresden", lat: 51.0504, lon: 13.7373},
-  {name: "Hannover", lat: 52.3759, lon: 9.7320},
-  {name: "Nürnberg", lat: 49.4521, lon: 11.0767},
-  {name: "Bremen", lat: 53.0793, lon: 8.8017},
-  {name: "Düsseldorf", lat: 51.2277, lon: 6.7735},
-  {name: "Essen", lat: 51.4556, lon: 7.0116},
-  {name: "Zürich (CH)", lat: 47.3769, lon: 8.5417},
-  {name: "Wien (AT)", lat: 48.2082, lon: 16.3738}
-];
+// --- 1. KONFIGURATION & TEXTE ---
 
 const ZODIAC = [
   {name: "Widder", icon: "♈", elm: "fire"}, {name: "Stier", icon: "♉", elm: "earth"},
@@ -285,7 +309,6 @@ const ZODIAC = [
   {name: "Wassermann", icon: "♒", elm: "air"}, {name: "Fische", icon: "♓", elm: "water"}
 ];
 
-// Texte für die Kurzauswertung
 const SIGN_TEXTS = {
   "Widder": "Du bist ein energiegeladener Pionier. Deine Willenskraft und dein Mut treiben dich an, neue Wege zu gehen.",
   "Stier": "Du suchst Sicherheit und Beständigkeit. Du genießt die schönen Seiten des Lebens und bist ein Fels in der Brandung.",
@@ -307,42 +330,144 @@ const PLANETS = {
   "Ascendant": "Aszendent"
 };
 
-// --- INIT ---
+// --- 2. INTERNE BASIS-STÄDTE (Backup & Schnellzugriff) ---
+const BASE_CITIES = [
+  {n:"Berlin", lat:52.52, lon:13.40}, {n:"Hamburg", lat:53.55, lon:9.99}, {n:"München", lat:48.13, lon:11.58},
+  {n:"Köln", lat:50.93, lon:6.96}, {n:"Wien", lat:48.20, lon:16.37}, {n:"Zürich", lat:47.37, lon:8.54},
+  {n:"Frankfurt am Main", lat:50.11, lon:8.68}, {n:"Stuttgart", lat:48.77, lon:9.18}
+];
+
+// --- 3. INITIALISIERUNG ---
 window.onload = function() {
   const statusDiv = document.getElementById("status");
   if (typeof Astronomy !== 'undefined') {
     statusDiv.className = "status-ok";
     statusDiv.innerText = "System bereit";
-    fillCities();
+    initSearch();
   } else {
     statusDiv.className = "status-err";
     statusDiv.innerText = "Fehler: Bibliothek nicht geladen.";
   }
 };
 
-function fillCities() {
-  const sel = document.getElementById("citySelect");
-  DE_CITIES.sort((a,b) => a.name.localeCompare(b.name));
-  DE_CITIES.forEach(c => {
-    let opt = document.createElement("option");
-    opt.value = c.lat + "," + c.lon;
-    opt.text = c.name;
-    sel.add(opt);
+// --- 4. LIVE SUCHE LOGIK (MIT API) ---
+let debounceTimer;
+
+function initSearch() {
+  const searchInput = document.getElementById("citySearch");
+  const resultsBox = document.getElementById("cityResults");
+  const spinner = document.getElementById("searchSpinner");
+
+  searchInput.addEventListener("input", function() {
+    const query = this.value.trim();
+
+    // Box leeren und verstecken bei leerem Input
+    if(query.length < 2) {
+      resultsBox.style.display = "none";
+      spinner.style.display = "none";
+      return;
+    }
+
+    // Spinner zeigen
+    spinner.style.display = "block";
+
+    // Debounce: Warte 400ms bevor API Anfrage gesendet wird (spart Daten)
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => {
+      fetchCities(query);
+    }, 400);
   });
-  // Default: Kaiserslautern
-  sel.value = "49.4447,7.768";
-  updateCoords();
+
+  // Klick außerhalb schließt Liste
+  document.addEventListener("click", function(e) {
+    if (e.target !== searchInput) {
+      resultsBox.style.display = "none";
+    }
+  });
 }
 
-function updateCoords() {
-  const val = document.getElementById("citySelect").value;
-  if(val) {
-    const parts = val.split(",");
-    document.getElementById("lat").value = parts[0];
-    document.getElementById("lon").value = parts[1];
+// Funktion: Städte via API abrufen (Nominatim / OpenStreetMap)
+async function fetchCities(query) {
+  const resultsBox = document.getElementById("cityResults");
+  const searchInput = document.getElementById("citySearch");
+  const spinner = document.getElementById("searchSpinner");
+
+  try {
+    // 1. Zuerst lokale Treffer prüfen (für schnelle Ergebnisse)
+    const localMatches = BASE_CITIES.filter(c => c.n.toLowerCase().includes(query.toLowerCase()));
+
+    // 2. API Anfrage
+    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5&accept-language=de`;
+    const response = await fetch(url);
+    const data = await response.json();
+
+    resultsBox.innerHTML = "";
+
+    // --- Lokale Treffer anzeigen ---
+    if(localMatches.length > 0) {
+      localMatches.forEach(city => {
+        createResultItem(city.n, city.lat, city.lon, "Großstadt");
+      });
+    }
+
+    // --- API Treffer anzeigen ---
+    if(data && data.length > 0) {
+      data.forEach(place => {
+        // Dubletten vermeiden (grob)
+        if(!localMatches.some(l => l.n === place.name)) {
+           // display_name ist oft lang, wir nehmen place.name oder kürzen es
+           createResultItem(place.display_name, place.lat, place.lon, "");
+        }
+      });
+    }
+
+    // Wenn keine Treffer
+    if(localMatches.length === 0 && data.length === 0) {
+      const div = document.createElement("div");
+      div.className = "city-item text-muted";
+      div.innerText = "Kein Ort gefunden.";
+      resultsBox.appendChild(div);
+    }
+
+    resultsBox.style.display = "block";
+
+  } catch (error) {
+    console.error("Fehler bei der Ortssuche:", error);
+  } finally {
+    spinner.style.display = "none";
   }
 }
 
+function createResultItem(name, lat, lon, extraInfo) {
+  const resultsBox = document.getElementById("cityResults");
+  const searchInput = document.getElementById("citySearch");
+
+  const div = document.createElement("div");
+  div.className = "city-item";
+
+  // Name formatieren
+  // Meistens kommt: "Stadt, Landkreis, Bundesland, Land"
+  // Wir wollen es etwas kürzen
+  const parts = name.split(",");
+  const mainName = parts[0];
+  // Rest für Details (schneide Land ab wenn zu lang)
+  let details = "";
+  if(parts.length > 1) {
+      details = parts.slice(1, 3).join(", ");
+  }
+
+  div.innerHTML = `<strong>${mainName}</strong> <small>${details} ${extraInfo ? '('+extraInfo+')' : ''}</small>`;
+
+  div.onclick = function() {
+    document.getElementById("lat").value = parseFloat(lat).toFixed(4);
+    document.getElementById("lon").value = parseFloat(lon).toFixed(4);
+    searchInput.value = mainName; // Nur Stadtname ins Feld
+    resultsBox.style.display = "none";
+  };
+  resultsBox.appendChild(div);
+}
+
+// --- HELPER ---
 function mod(x, y) { return ((x % y) + y) % y; }
 
 function getZod(deg) {
@@ -353,7 +478,6 @@ function getZod(deg) {
   return { sign: z, txt: `${d}° ${m}'` };
 }
 
-// Manuelle Berechnung der Erdneigung (Fix für den Fehler)
 function getObliquity(dateObj) {
   const J2000 = new Date("2000-01-01T12:00:00Z");
   const days = (dateObj - J2000) / 86400000;
@@ -364,93 +488,108 @@ function getObliquity(dateObj) {
 // --- BERECHNUNG ---
 function calculate() {
   const out = document.getElementById("output");
-  out.innerHTML = "<p style='text-align:center; color:#888'>Berechne Positionen...</p>";
+  const loader = document.getElementById("loader");
 
-  try {
-    if (typeof Astronomy === 'undefined') throw new Error("Bibliothek fehlt.");
+  // Reset
+  out.style.display = 'none';
+  out.innerHTML = "";
 
-    const dStr = document.getElementById("date").value;
-    const tStr = document.getElementById("time").value;
-    const lat = parseFloat(document.getElementById("lat").value);
-    const lon = parseFloat(document.getElementById("lon").value);
+  // VALIDIERUNG
+  const dStr = document.getElementById("date").value;
+  const tStr = document.getElementById("time").value;
+  const latVal = document.getElementById("lat").value;
+  const lonVal = document.getElementById("lon").value;
 
-    const date = new Date(dStr + "T" + tStr);
-
-    let list = [];
-    const bodies = ["Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto"];
-
-    // 1. Planeten
-    bodies.forEach(b => {
-      const vec = Astronomy.GeoVector(Astronomy.Body[b], date, true);
-      const elon = Astronomy.Ecliptic(vec).elon;
-      list.push({ key: b, val: elon });
-    });
-
-    // 2. Aszendent
-    const gmst = Astronomy.SiderealTime(date);
-    const ramc = gmst * 15 + lon;
-    const obl = getObliquity(date);
-
-    const eps = obl * Math.PI / 180;
-    const latRad = lat * Math.PI / 180;
-    const ramcRad = ramc * Math.PI / 180;
-
-    const acRad = Math.atan2(Math.cos(ramcRad), -Math.sin(ramcRad) * Math.cos(eps) - Math.tan(latRad) * Math.sin(eps));
-    list.push({ key: "Ascendant", val: mod(acRad * 180 / Math.PI, 360) });
-
-    // 3. Ausgabe
-    const order = ["Sun", "Moon", "Ascendant", "Mercury", "Venus", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto"];
-    list.sort((a,b) => order.indexOf(a.key) - order.indexOf(b.key));
-
-    let html = "<table>";
-    let sunSign = "";
-    let acSign = "";
-
-    list.forEach(item => {
-      const z = getZod(item.val);
-      const name = PLANETS[item.key];
-      const style = ["Sun","Moon","Ascendant"].includes(item.key) ? "font-weight:bold; color:#2c3e50;" : "color:#666;";
-
-      // Speichere Sonne und AC für Auswertung
-      if(item.key === "Sun") sunSign = z.sign.name;
-      if(item.key === "Ascendant") acSign = z.sign.name;
-
-      html += `<tr>
-        <td style="${style}">${name}</td>
-        <td><span class="badge-elem ${z.sign.elm}">${z.sign.icon} ${z.sign.name}</span></td>
-        <td style="text-align:right; font-family:monospace; color:#888;">${z.txt}</td>
-      </tr>`;
-    });
-    html += "</table>";
-
-    // --- Kurzauswertung hinzufügen ---
-    if(sunSign && acSign) {
-        html += `<div class="interpretation-box">
-            <span class="interpretation-title">Dein Kern (Sonne in ${sunSign}):</span>
-            <p class="interpretation-text">${SIGN_TEXTS[sunSign]}</p>
-
-            <span class="interpretation-title mt-3">Deine Wirkung (Aszendent in ${acSign}):</span>
-            <p class="interpretation-text mb-0">${SIGN_TEXTS[acSign]}</p>
-        </div>`;
-    }
-
-    // --- Call to Action Button ---
-    html += `<div class="text-center mt-4">
-        <p class="mb-2 text-muted" style="font-size:0.9em">Das war nur der Anfang. Erfahre, was die Sterne wirklich für dich bereithalten.</p>
-        <a href="form.html" class="btn-cta">
-           Persönliche Deutung anfragen <i class="bi bi-arrow-right ms-1"></i>
-        </a>
-    </div>`;
-
-    // Kleiner Fade-In Effekt
-    out.style.opacity = 0;
-    out.innerHTML = html;
-    setTimeout(() => { out.style.transition = 'opacity 0.5s'; out.style.opacity = 1; }, 50);
-
-  } catch (err) {
-    out.innerHTML = `<div class="error-msg">Hoppla: ${err.message}</div>`;
-    console.error(err);
+  if(!latVal || !lonVal) {
+    alert("Bitte suche zuerst deinen Geburtsort im Suchfeld.");
+    return;
   }
+  if(!dStr) {
+    alert("Bitte gib ein Geburtsdatum ein.");
+    return;
+  }
+  if(!tStr) {
+    alert("Bitte gib eine Geburtszeit ein.");
+    return;
+  }
+
+  loader.style.display = 'block';
+
+  setTimeout(() => {
+    try {
+      if (typeof Astronomy === 'undefined') throw new Error("Bibliothek fehlt.");
+
+      const lat = parseFloat(latVal);
+      const lon = parseFloat(lonVal);
+      const date = new Date(dStr + "T" + tStr);
+
+      let list = [];
+      const bodies = ["Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto"];
+
+      bodies.forEach(b => {
+        const vec = Astronomy.GeoVector(Astronomy.Body[b], date, true);
+        const elon = Astronomy.Ecliptic(vec).elon;
+        list.push({ key: b, val: elon });
+      });
+
+      const gmst = Astronomy.SiderealTime(date);
+      const ramc = gmst * 15 + lon;
+      const obl = getObliquity(date);
+      const eps = obl * Math.PI / 180;
+      const latRad = lat * Math.PI / 180;
+      const ramcRad = ramc * Math.PI / 180;
+      const acRad = Math.atan2(Math.cos(ramcRad), -Math.sin(ramcRad) * Math.cos(eps) - Math.tan(latRad) * Math.sin(eps));
+      list.push({ key: "Ascendant", val: mod(acRad * 180 / Math.PI, 360) });
+
+      const order = ["Sun", "Moon", "Ascendant", "Mercury", "Venus", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto"];
+      list.sort((a,b) => order.indexOf(a.key) - order.indexOf(b.key));
+
+      let html = "<table>";
+      let sunSign = "";
+      let acSign = "";
+
+      list.forEach(item => {
+        const z = getZod(item.val);
+        const name = PLANETS[item.key];
+        const style = ["Sun","Moon","Ascendant"].includes(item.key) ? "font-weight:bold; color:#2c3e50;" : "color:#666;";
+
+        if(item.key === "Sun") sunSign = z.sign.name;
+        if(item.key === "Ascendant") acSign = z.sign.name;
+
+        html += `<tr>
+          <td style="${style}">${name}</td>
+          <td><span class="badge-elem ${z.sign.elm}">${z.sign.icon} ${z.sign.name}</span></td>
+          <td style="text-align:right; font-family:monospace; color:#888;">${z.txt}</td>
+        </tr>`;
+      });
+      html += "</table>";
+
+      if(sunSign && acSign) {
+          html += `<div class="interpretation-box">
+              <span class="interpretation-title">Dein Kern (Sonne in ${sunSign}):</span>
+              <p class="interpretation-text">${SIGN_TEXTS[sunSign]}</p>
+              <span class="interpretation-title mt-3">Deine Wirkung (Aszendent in ${acSign}):</span>
+              <p class="interpretation-text mb-0">${SIGN_TEXTS[acSign]}</p>
+          </div>`;
+      }
+
+      html += `<div class="text-center mt-4">
+          <p class="mb-2 text-muted" style="font-size:0.9em">Das war nur der Anfang. Erfahre, was die Sterne wirklich für dich bereithalten.</p>
+          <a href="form.html" class="btn-cta">
+             Persönliche Deutung anfragen <i class="bi bi-arrow-right ms-1"></i>
+          </a>
+      </div>`;
+
+      loader.style.display = 'none';
+      out.innerHTML = html;
+      out.style.display = 'block';
+
+    } catch (err) {
+      loader.style.display = 'none';
+      out.style.display = 'block';
+      out.innerHTML = `<div class="error-msg">Hoppla: ${err.message}</div>`;
+    }
+  }, 800);
 }
 </script>
 
