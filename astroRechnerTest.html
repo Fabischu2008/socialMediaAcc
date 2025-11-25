@@ -154,15 +154,15 @@
     <nav class="navbar navbar-expand-lg navbar-light">
       <a class="navbar-brand fw-bold d-flex align-items-center" href="index.html">
         <img src="logo.png" onerror="this.style.display='none'" alt="Logo" height="70" class="me-2" />
-        <small class="text-muted">Weg der Erleuchtung</small>
+        <small class="text-muted" style="font-size: 1.2rem;">Weg der Erleuchtung</small>
       </a>
 
       <div class="collapse navbar-collapse justify-content-end" id="mainNavbar">
         <ul class="navbar-nav">
           <li class="nav-item">
-            <a class="nav-link" href="angebot.html"></a>
+            <a class="nav-link" href="angebot.html">Angebot</a>
           </li>
-          <li class="nav-item"><a class="nav-link" href="#kontakt"></a></li>
+          <li class="nav-item"><a class="nav-link" href="#kontakt">Kontakt</a></li>
         </ul>
       </div>
     </nav>
@@ -254,43 +254,23 @@
           <a href="https://wa.me/4915259527957" class="text-white text-decoration-none">+49 1525 9527957</a>
         </p>
       </div>
-
       <div class="col-md-4">
         <h5 class="mb-3">Schnellzugriff</h5>
         <ul class="list-unstyled">
           <li><a href="index.html" class="text-white text-decoration-none">Start</a></li>
         </ul>
       </div>
-
       <div class="col-md-4">
         <h5 class="mb-3">Weg der Erleuchtung</h5>
-        <p class="mb-2">
-          Spirituelle Begleitung mit Herz – für Menschen, die mehr Tiefe, Klarheit und Bewusstsein in ihr Leben bringen möchten.
-        </p>
+        <p class="mb-2">Spirituelle Begleitung mit Herz.</p>
         <ul class="list-inline mt-3">
-          <li class="list-inline-item">
-            <a href="https://instagram.com/weg.der.erleuchtung" class="text-white fs-5 me-2"><i class="bi bi-instagram"></i></a>
-            <a href="https://www.tiktok.com/@weg.der.erleuchtung?lang=de-DE" class="text-white fs-5 me-2"><i class="bi bi-tiktok"></i></a>
-          </li>
+          <li class="list-inline-item"><a href="#" class="text-white fs-5 me-2"><i class="bi bi-instagram"></i></a></li>
         </ul>
       </div>
     </div>
-
     <hr class="border-secondary mt-5">
-
     <div class="row">
-      <div class="col-md-6">
-        <ul class="list-inline mb-0">
-          <li class="list-inline-item"><a href="impressum.html" class="text-white text-decoration-none">Impressum</a></li>
-          <li class="list-inline-item mx-2">|</li>
-          <li class="list-inline-item"><a href="datenschutz.html" class="text-white text-decoration-none">Datenschutz</a></li>
-          <li class="list-inline-item mx-2">|</li>
-          <li class="list-inline-item"><a href="agb.html" class="text-white text-decoration-none">AGB</a></li>
-        </ul>
-      </div>
-      <div class="col-md-6 text-md-end mt-3 mt-md-0">
-        <small>&copy; 2025 Weg der Erleuchtung – mit Liebe & Klarheit gestaltet.</small>
-      </div>
+      <div class="col-md-6"><small>&copy; 2025 Weg der Erleuchtung</small></div>
     </div>
   </div>
 </footer>
@@ -330,7 +310,7 @@ const PLANETS = {
   "Ascendant": "Aszendent"
 };
 
-// --- 2. INTERNE BASIS-STÄDTE (Backup & Schnellzugriff) ---
+// --- 2. INTERNE BASIS-STÄDTE ---
 const BASE_CITIES = [
   {n:"Berlin", lat:52.52, lon:13.40}, {n:"Hamburg", lat:53.55, lon:9.99}, {n:"München", lat:48.13, lon:11.58},
   {n:"Köln", lat:50.93, lon:6.96}, {n:"Wien", lat:48.20, lon:16.37}, {n:"Zürich", lat:47.37, lon:8.54},
@@ -350,7 +330,7 @@ window.onload = function() {
   }
 };
 
-// --- 4. LIVE SUCHE LOGIK (MIT API) ---
+// --- 4. LIVE SUCHE LOGIK ---
 let debounceTimer;
 
 function initSearch() {
@@ -361,24 +341,20 @@ function initSearch() {
   searchInput.addEventListener("input", function() {
     const query = this.value.trim();
 
-    // Box leeren und verstecken bei leerem Input
     if(query.length < 2) {
       resultsBox.style.display = "none";
       spinner.style.display = "none";
       return;
     }
 
-    // Spinner zeigen
     spinner.style.display = "block";
 
-    // Debounce: Warte 400ms bevor API Anfrage gesendet wird (spart Daten)
     clearTimeout(debounceTimer);
     debounceTimer = setTimeout(() => {
       fetchCities(query);
     }, 400);
   });
 
-  // Klick außerhalb schließt Liste
   document.addEventListener("click", function(e) {
     if (e.target !== searchInput) {
       resultsBox.style.display = "none";
@@ -386,42 +362,33 @@ function initSearch() {
   });
 }
 
-// Funktion: Städte via API abrufen (Nominatim / OpenStreetMap)
 async function fetchCities(query) {
   const resultsBox = document.getElementById("cityResults");
   const searchInput = document.getElementById("citySearch");
   const spinner = document.getElementById("searchSpinner");
 
   try {
-    // 1. Zuerst lokale Treffer prüfen (für schnelle Ergebnisse)
     const localMatches = BASE_CITIES.filter(c => c.n.toLowerCase().includes(query.toLowerCase()));
-
-    // 2. API Anfrage
     const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5&accept-language=de`;
     const response = await fetch(url);
     const data = await response.json();
 
     resultsBox.innerHTML = "";
 
-    // --- Lokale Treffer anzeigen ---
     if(localMatches.length > 0) {
       localMatches.forEach(city => {
         createResultItem(city.n, city.lat, city.lon, "Großstadt");
       });
     }
 
-    // --- API Treffer anzeigen ---
     if(data && data.length > 0) {
       data.forEach(place => {
-        // Dubletten vermeiden (grob)
         if(!localMatches.some(l => l.n === place.name)) {
-           // display_name ist oft lang, wir nehmen place.name oder kürzen es
            createResultItem(place.display_name, place.lat, place.lon, "");
         }
       });
     }
 
-    // Wenn keine Treffer
     if(localMatches.length === 0 && data.length === 0) {
       const div = document.createElement("div");
       div.className = "city-item text-muted";
@@ -445,12 +412,8 @@ function createResultItem(name, lat, lon, extraInfo) {
   const div = document.createElement("div");
   div.className = "city-item";
 
-  // Name formatieren
-  // Meistens kommt: "Stadt, Landkreis, Bundesland, Land"
-  // Wir wollen es etwas kürzen
   const parts = name.split(",");
   const mainName = parts[0];
-  // Rest für Details (schneide Land ab wenn zu lang)
   let details = "";
   if(parts.length > 1) {
       details = parts.slice(1, 3).join(", ");
@@ -461,7 +424,7 @@ function createResultItem(name, lat, lon, extraInfo) {
   div.onclick = function() {
     document.getElementById("lat").value = parseFloat(lat).toFixed(4);
     document.getElementById("lon").value = parseFloat(lon).toFixed(4);
-    searchInput.value = mainName; // Nur Stadtname ins Feld
+    searchInput.value = mainName;
     resultsBox.style.display = "none";
   };
   resultsBox.appendChild(div);
@@ -485,16 +448,14 @@ function getObliquity(dateObj) {
   return 23.43929 - (0.0130041 * T);
 }
 
-// --- BERECHNUNG ---
+// --- BERECHNUNG (ZEITZONEN-UNABHÄNGIG) ---
 function calculate() {
   const out = document.getElementById("output");
   const loader = document.getElementById("loader");
 
-  // Reset
   out.style.display = 'none';
   out.innerHTML = "";
 
-  // VALIDIERUNG
   const dStr = document.getElementById("date").value;
   const tStr = document.getElementById("time").value;
   const latVal = document.getElementById("lat").value;
@@ -521,7 +482,30 @@ function calculate() {
 
       const lat = parseFloat(latVal);
       const lon = parseFloat(lonVal);
-      const date = new Date(dStr + "T" + tStr);
+
+      // --- ZEITZONEN FIX ---
+      // Wir trennen das Datum von der Browser-Zeitzone.
+      // Wir nehmen an: Geburtszeit = Ortszeit.
+      // Approximation: Zeitzone ~ Längengrad / 15
+
+      const [year, month, day] = dStr.split('-').map(Number);
+      const [hour, minute] = tStr.split(':').map(Number);
+
+      // 1. Geschätzte Zeitzone des Geburtsortes (Stunden)
+      let offsetHours = Math.round(lon / 15);
+
+      // 2. Sommerzeit-Schätzung (Grob für Nordhalbkugel)
+      // Wenn Monat zwischen April (4) und Oktober (10) -> +1 Stunde
+      // Dies ist nicht 100% exakt historisch, aber verhindert den 6-Stunden-Fehler Thailand vs DE.
+      if(lat > 0 && month >= 4 && month <= 10) {
+          offsetHours += 1;
+      }
+
+      // 3. Erstelle ein UTC Datum, indem wir den Offset abziehen
+      // Wir sagen: "Dies ist die Zeit in UTC, wenn wir den lokalen Offset abziehen"
+      const date = new Date(Date.UTC(year, month - 1, day, hour - offsetHours, minute));
+
+      // ---------------------
 
       let list = [];
       const bodies = ["Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto"];
