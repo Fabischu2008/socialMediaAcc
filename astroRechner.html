@@ -40,7 +40,7 @@
 
     input[readonly] { background: #f8f9fa; color: #888; cursor: default; }
 
-    /* --- Styling für die Suchergebnisse --- */
+    /* --- Suchergebnisse --- */
     .search-wrapper { position: relative; }
 
     #cityResults {
@@ -83,7 +83,7 @@
     }
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-    /* Berechnen Button */
+    /* Buttons */
     button.btn-calc {
       width: 100%; margin-top: 25px; padding: 14px;
       background: linear-gradient(135deg, #3498db, #2980b9);
@@ -97,7 +97,6 @@
       color: white;
     }
 
-    /* CTA Button */
     .btn-cta {
       background-color: #fce51f;
       color: #000;
@@ -116,13 +115,12 @@
       color: #000;
     }
 
-    /* Status Box */
+    /* Status & Output */
     #status { text-align: center; font-size: 0.85em; margin-bottom: 20px; padding: 8px; border-radius: 6px; }
     .status-ok { background: #e8f5e9; color: #2e7d32; }
     .status-err { background: #ffebee; color: #c62828; }
     .status-wait { background: #fff3e0; color: #ef6c00; }
 
-    /* Output & Interpretation */
     #output { margin-top: 30px; border-top: 2px solid #f5f5f5; padding-top: 20px; display:none; }
     table { width: 100%; border-collapse: separate; border-spacing: 0 8px; }
     tr { background: #fff; }
@@ -145,6 +143,7 @@
     .water { background:#e0f7fa; color:#0097a7; }
 
     .error-msg { color: #c62828; background: #ffebee; padding: 15px; border-radius: 8px; margin-top: 15px; font-weight: bold; text-align: center;}
+    .calc-info { text-align: center; font-size: 0.8em; color: #999; margin-top: 10px; }
   </style>
 </head>
 <body>
@@ -154,7 +153,7 @@
     <nav class="navbar navbar-expand-lg navbar-light">
       <a class="navbar-brand fw-bold d-flex align-items-center" href="index.html">
         <img src="logo.png" onerror="this.style.display='none'" alt="Logo" height="70" class="me-2" />
-        <small class="text-muted">Weg der Erleuchtung</small>
+        <small class="text-muted" style="font-size: 1.2rem;">Weg der Erleuchtung</small>
       </a>
 
       <div class="collapse navbar-collapse justify-content-end" id="mainNavbar">
@@ -188,6 +187,7 @@
             Suche einfach nach deinem Geburtsort (z.B. "München").
           </p>
         </div>
+
 
         <div class="bg-white p-4 p-md-5 rounded-3 shadow">
 
@@ -224,10 +224,10 @@
             </div>
 
             <button type="button" class="btn-calc" onclick="calculate()">Jetzt Berechnen</button>
+            <div id="calcInfo" class="calc-info"></div>
           </form>
 
           <div id="loader" class="loader"></div>
-
           <div id="output"></div>
 
         </div>
@@ -298,8 +298,7 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
-// --- 1. KONFIGURATION & TEXTE ---
-
+// --- 1. DATEN ---
 const ZODIAC = [
   {name: "Widder", icon: "♈", elm: "fire"}, {name: "Stier", icon: "♉", elm: "earth"},
   {name: "Zwillinge", icon: "♊", elm: "air"}, {name: "Krebs", icon: "♋", elm: "water"},
@@ -330,14 +329,13 @@ const PLANETS = {
   "Ascendant": "Aszendent"
 };
 
-// --- 2. INTERNE BASIS-STÄDTE (Backup & Schnellzugriff) ---
 const BASE_CITIES = [
   {n:"Berlin", lat:52.52, lon:13.40}, {n:"Hamburg", lat:53.55, lon:9.99}, {n:"München", lat:48.13, lon:11.58},
   {n:"Köln", lat:50.93, lon:6.96}, {n:"Wien", lat:48.20, lon:16.37}, {n:"Zürich", lat:47.37, lon:8.54},
   {n:"Frankfurt am Main", lat:50.11, lon:8.68}, {n:"Stuttgart", lat:48.77, lon:9.18}
 ];
 
-// --- 3. INITIALISIERUNG ---
+// --- 2. INIT ---
 window.onload = function() {
   const statusDiv = document.getElementById("status");
   if (typeof Astronomy !== 'undefined') {
@@ -350,7 +348,7 @@ window.onload = function() {
   }
 };
 
-// --- 4. LIVE SUCHE LOGIK (MIT API) ---
+// --- 3. LIVE SUCHE (OpenStreetMap) ---
 let debounceTimer;
 
 function initSearch() {
@@ -360,79 +358,52 @@ function initSearch() {
 
   searchInput.addEventListener("input", function() {
     const query = this.value.trim();
-
-    // Box leeren und verstecken bei leerem Input
     if(query.length < 2) {
       resultsBox.style.display = "none";
       spinner.style.display = "none";
       return;
     }
-
-    // Spinner zeigen
     spinner.style.display = "block";
-
-    // Debounce: Warte 400ms bevor API Anfrage gesendet wird (spart Daten)
     clearTimeout(debounceTimer);
-    debounceTimer = setTimeout(() => {
-      fetchCities(query);
-    }, 400);
+    debounceTimer = setTimeout(() => { fetchCities(query); }, 400);
   });
 
-  // Klick außerhalb schließt Liste
   document.addEventListener("click", function(e) {
-    if (e.target !== searchInput) {
-      resultsBox.style.display = "none";
-    }
+    if (e.target !== searchInput) resultsBox.style.display = "none";
   });
 }
 
-// Funktion: Städte via API abrufen (Nominatim / OpenStreetMap)
 async function fetchCities(query) {
   const resultsBox = document.getElementById("cityResults");
-  const searchInput = document.getElementById("citySearch");
   const spinner = document.getElementById("searchSpinner");
 
   try {
-    // 1. Zuerst lokale Treffer prüfen (für schnelle Ergebnisse)
     const localMatches = BASE_CITIES.filter(c => c.n.toLowerCase().includes(query.toLowerCase()));
-
-    // 2. API Anfrage
     const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5&accept-language=de`;
     const response = await fetch(url);
     const data = await response.json();
 
     resultsBox.innerHTML = "";
 
-    // --- Lokale Treffer anzeigen ---
     if(localMatches.length > 0) {
-      localMatches.forEach(city => {
-        createResultItem(city.n, city.lat, city.lon, "Großstadt");
-      });
+      localMatches.forEach(city => createResultItem(city.n, city.lat, city.lon, "Großstadt"));
     }
-
-    // --- API Treffer anzeigen ---
     if(data && data.length > 0) {
       data.forEach(place => {
-        // Dubletten vermeiden (grob)
         if(!localMatches.some(l => l.n === place.name)) {
-           // display_name ist oft lang, wir nehmen place.name oder kürzen es
            createResultItem(place.display_name, place.lat, place.lon, "");
         }
       });
     }
-
-    // Wenn keine Treffer
     if(localMatches.length === 0 && data.length === 0) {
       const div = document.createElement("div");
       div.className = "city-item text-muted";
       div.innerText = "Kein Ort gefunden.";
       resultsBox.appendChild(div);
     }
-
     resultsBox.style.display = "block";
-
   } catch (error) {
-    console.error("Fehler bei der Ortssuche:", error);
+    console.error("Fehler:", error);
   } finally {
     spinner.style.display = "none";
   }
@@ -441,33 +412,26 @@ async function fetchCities(query) {
 function createResultItem(name, lat, lon, extraInfo) {
   const resultsBox = document.getElementById("cityResults");
   const searchInput = document.getElementById("citySearch");
-
   const div = document.createElement("div");
   div.className = "city-item";
 
-  // Name formatieren
-  // Meistens kommt: "Stadt, Landkreis, Bundesland, Land"
-  // Wir wollen es etwas kürzen
   const parts = name.split(",");
   const mainName = parts[0];
-  // Rest für Details (schneide Land ab wenn zu lang)
   let details = "";
-  if(parts.length > 1) {
-      details = parts.slice(1, 3).join(", ");
-  }
+  if(parts.length > 1) details = parts.slice(1, 3).join(", ");
 
-  div.innerHTML = `<strong>${mainName}</strong> <small>${details} ${extraInfo ? '('+extraInfo+')' : ''}</small>`;
+  div.innerHTML = `<strong>${mainName}</strong> <small>${details}</small>`;
 
   div.onclick = function() {
     document.getElementById("lat").value = parseFloat(lat).toFixed(4);
     document.getElementById("lon").value = parseFloat(lon).toFixed(4);
-    searchInput.value = mainName; // Nur Stadtname ins Feld
+    searchInput.value = mainName;
     resultsBox.style.display = "none";
   };
   resultsBox.appendChild(div);
 }
 
-// --- HELPER ---
+// --- 4. HELPER & BERECHNUNG ---
 function mod(x, y) { return ((x % y) + y) % y; }
 
 function getZod(deg) {
@@ -485,33 +449,23 @@ function getObliquity(dateObj) {
   return 23.43929 - (0.0130041 * T);
 }
 
-// --- BERECHNUNG ---
+// ⭐️ CORE FUNCTION: Calculate (Timezone Independent)
 function calculate() {
   const out = document.getElementById("output");
   const loader = document.getElementById("loader");
+  const infoBox = document.getElementById("calcInfo");
 
-  // Reset
   out.style.display = 'none';
   out.innerHTML = "";
+  infoBox.innerHTML = "";
 
-  // VALIDIERUNG
   const dStr = document.getElementById("date").value;
   const tStr = document.getElementById("time").value;
   const latVal = document.getElementById("lat").value;
   const lonVal = document.getElementById("lon").value;
 
-  if(!latVal || !lonVal) {
-    alert("Bitte suche zuerst deinen Geburtsort im Suchfeld.");
-    return;
-  }
-  if(!dStr) {
-    alert("Bitte gib ein Geburtsdatum ein.");
-    return;
-  }
-  if(!tStr) {
-    alert("Bitte gib eine Geburtszeit ein.");
-    return;
-  }
+  if(!latVal || !lonVal) { alert("Bitte wähle zuerst einen Geburtsort aus der Liste."); return; }
+  if(!dStr || !tStr) { alert("Bitte fülle Datum und Zeit aus."); return; }
 
   loader.style.display = 'block';
 
@@ -521,7 +475,31 @@ function calculate() {
 
       const lat = parseFloat(latVal);
       const lon = parseFloat(lonVal);
-      const date = new Date(dStr + "T" + tStr);
+
+      // --- ZEITZONEN LOGIK START ---
+      // Wir ignorieren die Browser-Zeit und bauen uns eine "Ortszeit"
+      const [year, month, day] = dStr.split('-').map(Number);
+      const [hour, minute] = tStr.split(':').map(Number);
+
+      // 1. Schätze Zeitzone basierend auf Längengrad (15° = 1 Stunde)
+      let offset = Math.round(lon / 15);
+
+      // 2. Sommerzeit-Logik (Grob für Nordhalbkugel, aber sicher für Tropen)
+      // Nur anwenden wenn Breitengrad > 25 (also nicht in Thailand/Tropen)
+      // und Monat zwischen April und Oktober.
+      let isDST = false;
+      if(lat > 25 && (month >= 4 && month <= 10)) {
+        offset += 1;
+        isDST = true;
+      }
+
+      // 3. Erstelle UTC Date Objekt durch manuelles Abziehen des Offsets
+      const date = new Date(Date.UTC(year, month - 1, day, hour - offset, minute));
+
+      // Info anzeigen
+      const sign = offset >= 0 ? "+" : "";
+      infoBox.innerText = `Verwendete Zeitzone: UTC${sign}${offset} ${isDST ? '(Sommerzeit)' : ''}`;
+      // --- ZEITZONEN LOGIK ENDE ---
 
       let list = [];
       const bodies = ["Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto"];
