@@ -155,21 +155,31 @@
 </head>
 <body class="bg-light">
 
+<!-- Header -->
 <header class="py-3 border-bottom bg-white shadow-sm">
+
   <div class="container">
     <nav class="navbar navbar-expand-lg navbar-light">
-      <a class="navbar-brand fw-bold d-flex align-items-center" href="index.html">
-        <img src="logo.png" onerror="this.style.display='none'" alt="Logo" height="70" class="me-2" />
+      <a class="navbar-brand fw-bold d-flex align-items-center" href="#"><img src="logo.png" alt="Logo" height="70" class="me-2" />
         <small class="text-muted">Weg der Erleuchtung</small>
       </a>
 
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar">
+      <button
+              class="navbar-toggler"
+              type="button"
+              data-bs-toggle="collapse"
+              data-bs-target="#mainNavbar"
+              aria-controls="mainNavbar"
+              aria-expanded="false"
+              aria-label="Toggle navigation" >
         <span class="navbar-toggler-icon"></span>
       </button>
 
       <div class="collapse navbar-collapse justify-content-end" id="mainNavbar">
         <ul class="navbar-nav">
-          <li class="nav-item"><a class="nav-link" href="index.html"></a>Start</li>
+          <li class="nav-item">
+            <a class="nav-link" href="index.html">Start</a>
+          </li>
 
         </ul>
       </div>
