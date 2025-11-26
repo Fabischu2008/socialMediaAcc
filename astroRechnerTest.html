@@ -464,19 +464,30 @@ function calculate() {
       const [year, month, day] = dStr.split('-').map(Number);
       const [hour, minute] = tStr.split(':').map(Number);
 
-      // --- ZEITZONEN SCHÄTZUNG ---
+      // --- 1. VERBESSERTE ZEITZONEN-LOGIK ---
+      // Standard: Geometrische Zeitzone
       let offset = Math.round(lon / 15);
+
+      // FIX: Politische Korrektur für Zentraleuropa (DE/AT/CH)
+      // Köln (6.9°) würde sonst UTC+0 werden, ist aber UTC+1
+      if (lat > 40 && lat < 60 && lon > 5 && lon < 16) {
+          offset = 1;
+      }
+
+      // Sommerzeit-Check (Einfache Regel für EU: April bis Oktober)
       let isDST = false;
-      if(lat > 25 && (month >= 4 && month <= 10)) {
+      if(month >= 4 && month <= 10) {
         offset += 1;
         isDST = true;
       }
 
+      // Erstelle das UTC Datum basierend auf der geschätzten Zone
       const date = new Date(Date.UTC(year, month - 1, day, hour - offset, minute));
 
       const sign = offset >= 0 ? "+" : "";
-      infoBox.innerText = `Kalkulierte Zone: UTC${sign}${offset} ${isDST ? '(Sommerzeit an)' : '(Normalzeit)'}`;
+      infoBox.innerText = `Kalkulierte Zone: UTC${sign}${offset} ${isDST ? '(Sommerzeit)' : '(Normalzeit)'}`;
 
+      // --- 2. PLANETEN BERECHNUNG ---
       let list = [];
       const bodies = ["Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto"];
 
@@ -486,30 +497,43 @@ function calculate() {
         list.push({ key: b, val: elon });
       });
 
-      // --- ASZENDENT BERECHNUNG (FIX) ---
-      const gmst = Astronomy.SiderealTime(date);
-      const ramc = (gmst * 15 + lon) % 360;
+      // --- 3. FIX: STABILE ASZENDENTEN BERECHNUNG ---
 
-      // 🆕 FIX: Nutzung der neuen Funktion statt Absturz
+      // GMST berechnen
+      const gmst = Astronomy.SiderealTime(date);
+
+      // RAMC (Rektaszension des Medium Coeli) in Grad
+      // WICHTIG: ((x % 360) + 360) % 360 sorgt dafür, dass wir keine negativen Werte bei westlicher Länge haben
+      const ramc = ((gmst * 15 + lon) % 360 + 360) % 360;
+
+      // Schiefe der Ekliptik
       const eps = getTrueObliquity(date) * Math.PI / 180;
 
+      // Umrechnung in Bogenmaß (Radians)
       const latRad = lat * Math.PI / 180;
       const ramcRad = ramc * Math.PI / 180;
 
-      // Korrekte Trigonometrie für Aszendent
+      // Formel für Aszendent
+      // tan(AC) = cos(RAMC) / ( -sin(RAMC) * cos(eps) - tan(lat) * sin(eps) )
       const top = Math.cos(ramcRad);
       const bottom = -Math.sin(ramcRad) * Math.cos(eps) - Math.tan(latRad) * Math.sin(eps);
 
-      const acRad = Math.atan2(top, bottom);
-      const acDeg = mod(acRad * 180 / Math.PI, 360);
+      // atan2 handhabt die Quadranten korrekt
+      let acRad = Math.atan2(top, bottom);
+      let acDeg = (acRad * 180 / Math.PI);
+
+      // Normalisieren auf 0-360 Grad
+      acDeg = (acDeg + 360) % 360;
 
       list.push({ key: "Ascendant", val: acDeg });
 
-      // Sortieren
+      // --- ENDE BERECHNUNG ---
+
+      // Sortieren nach Reihenfolge
       const order = ["Sun", "Moon", "Ascendant", "Mercury", "Venus", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto"];
       list.sort((a,b) => order.indexOf(a.key) - order.indexOf(b.key));
 
-      // HTML Output
+      // HTML Output Generierung
       let html = "<table>";
       let sunSign = "", acSign = "";
 
